@@ -1,4 +1,4 @@
-fn aes_128_cipher(key: &[u8; 16], data: &mut [u8; 16]) {
+pub fn aes_128_cipher(key: &[u8; 16], data: &mut [u8; 16]) {
     const N_ROUND: usize = 10; // number of rounds
 
     // key expansion
@@ -18,7 +18,7 @@ fn aes_128_cipher(key: &[u8; 16], data: &mut [u8; 16]) {
     add_round_key(data, round_keys[N_ROUND]);
 }
 
-fn inv_aes_128_cipher(key: &[u8; 16], data: &mut [u8; 16]) {
+pub fn inv_aes_128_cipher(key: &[u8; 16], data: &mut [u8; 16]) {
     const N_ROUND: usize = 10; // number of rounds
 
     // key expansion
@@ -223,7 +223,7 @@ fn key_expansion_128(key: [u8; 16]) -> [[u8; 16]; 11] {
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    use super::*;
     use openssl::symm::{encrypt, Cipher};
     use proptest::prelude::*;
 

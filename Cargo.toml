@@ -6,3 +6,8 @@ edition = "2021"
 [dev-dependencies]
 openssl = { version = "0.10" }
 proptest = "1.2.0"
+criterion = "0.5.1"
+
+[[bench]]
+name = "aes_128"
+harness = false
