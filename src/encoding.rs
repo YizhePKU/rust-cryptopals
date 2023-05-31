@@ -13,6 +13,8 @@ pub fn b64_encode(bytes: &[u8]) -> String {
 }
 
 pub fn b64_decode(text: &str) -> Vec<u8> {
+    // remove whitespace
+    let text: String = text.chars().filter(|c| !c.is_whitespace()).collect();
     STANDARD.decode(text).unwrap()
 }
 
