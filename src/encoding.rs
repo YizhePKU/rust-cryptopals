@@ -16,6 +16,14 @@ pub fn b64_decode(text: &str) -> Vec<u8> {
     STANDARD.decode(text).unwrap()
 }
 
+pub fn utf8_encode(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(bytes).to_string()
+}
+
+pub fn utf8_decode(text: &str) -> Vec<u8> {
+    text.as_bytes().to_owned()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
