@@ -10,6 +10,14 @@ pub fn xor(lhs: &[u8], rhs: &[u8]) -> Vec<u8> {
     result
 }
 
+pub fn xor_inplace(lhs: &mut [u8], rhs: &[u8]) {
+    assert_eq!(lhs.len(), rhs.len());
+
+    for i in 0..lhs.len() {
+        lhs[i] ^= rhs[i];
+    }
+}
+
 pub fn pkcs7(bytes: &[u8]) -> Vec<u8> {
     const K: usize = 16;
 
