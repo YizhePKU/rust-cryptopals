@@ -218,6 +218,7 @@ dependencies = [
  "hex",
  "openssl",
  "proptest",
+ "rand",
 ]
 
 [[package]]

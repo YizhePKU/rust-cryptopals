@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 base64 = "0.21.2"
 hex = "0.4.3"
+rand = "0.8.5"
 
 [dev-dependencies]
 openssl = { version = "0.10" }
