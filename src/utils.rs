@@ -1,3 +1,5 @@
+use crate::error::CryptoError;
+
 pub fn xor(lhs: &[u8], rhs: &[u8]) -> Vec<u8> {
     assert_eq!(lhs.len(), rhs.len());
 
@@ -20,14 +22,14 @@ pub fn pkcs7(bytes: &[u8]) -> Vec<u8> {
     result
 }
 
-pub fn inv_pkcs7(bytes: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn inv_pkcs7(bytes: &[u8]) -> Result<Vec<u8>, CryptoError> {
     let cnt = bytes[bytes.len() - 1] as usize;
     if cnt == 0 || cnt > 16 {
-        return Err("Bad padding");
+        return Err(CryptoError::PaddingError);
     }
     for i in 0..cnt {
         if bytes[bytes.len() - 1 - i] != cnt as u8 {
-            return Err("Bad padding");
+            return Err(CryptoError::PaddingError);
         }
     }
     Ok(bytes[..bytes.len() - cnt].to_owned())
