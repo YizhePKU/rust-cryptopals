@@ -63,6 +63,29 @@ pub fn inv_aes_128_cbc(key: &[u8; 16], iv: &[u8; 16], data: &[u8]) -> Result<Vec
     inv_pkcs7(&result)
 }
 
+// format: 64 bits nouce + 64 bits block count (little endian)
+pub fn aes_128_ctr(key: &[u8; 16], nonce: u64, data: &[u8]) -> Vec<u8> {
+    let mut result = data.to_owned();
+
+    for cnt in 0.. {
+        let mut keyblock = [0; 16];
+        keyblock[..8].copy_from_slice(&u64::to_le_bytes(nonce));
+        keyblock[8..].copy_from_slice(&u64::to_le_bytes(cnt as u64));
+
+        aes_128_cipher(key, &mut keyblock);
+
+        let len = result.len();
+        if len > (cnt + 1) * 16 {
+            xor_inplace(&mut result[cnt * 16..(cnt + 1) * 16], &keyblock);
+        } else {
+            xor_inplace(&mut result[cnt * 16..], &keyblock[..len - cnt * 16]);
+            break;
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
