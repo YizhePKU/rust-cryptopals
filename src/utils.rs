@@ -31,8 +31,14 @@ pub fn pkcs7(bytes: &[u8]) -> Vec<u8> {
 }
 
 pub fn inv_pkcs7(bytes: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    if bytes.len() == 0 {
+        return Err(CryptoError::PaddingError);
+    }
     let cnt = bytes[bytes.len() - 1] as usize;
     if cnt == 0 || cnt > 16 {
+        return Err(CryptoError::PaddingError);
+    }
+    if bytes.len() < cnt {
         return Err(CryptoError::PaddingError);
     }
     for i in 0..cnt {
@@ -59,6 +65,8 @@ mod test {
     use crate::encoding::hex_decode;
     use proptest::prelude::*;
 
+    static ANYBYTE: prop::num::u8::Any = prop::num::u8::ANY;
+
     #[test]
     fn cryptopals_s1c2() {
         let lhs = hex_decode("1c0111001f010100061a024b53535009181c");
@@ -74,6 +82,11 @@ mod test {
             let data = vec![0; len as usize];
             let data2 = inv_pkcs7(&pkcs7(&data)).unwrap();
             assert_eq!(data, data2);
+        }
+
+        #[test]
+        fn inv_pkcs7_doesnt_crash(data in prop::collection::vec(ANYBYTE, 0..20)) {
+            let _ = inv_pkcs7(&data);
         }
     }
 }
