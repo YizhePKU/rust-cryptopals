@@ -43,6 +43,16 @@ pub fn inv_pkcs7(bytes: &[u8]) -> Result<Vec<u8>, CryptoError> {
     Ok(bytes[..bytes.len() - cnt].to_owned())
 }
 
+pub fn first_n<T, const N: usize>(slice: &[T]) -> &[T; N] {
+    assert!(slice.len() >= N);
+    slice[..N].try_into().unwrap()
+}
+
+pub fn last_n<T, const N: usize>(slice: &[T]) -> &[T; N] {
+    assert!(slice.len() >= N);
+    slice[slice.len() - N..].try_into().unwrap()
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

@@ -5,6 +5,7 @@ use std::{sync::OnceLock, vec};
 use crypto::{
     aes_128_modes::aes_128_ecb,
     encoding::{b64_decode, utf8_encode},
+    utils::last_n,
 };
 
 // Computes AES-128-ECB(data || secret, unknown-key)
@@ -14,16 +15,6 @@ fn ecb_oracle(data: &[u8]) -> Vec<u8> {
     let key = LOCK.get_or_init(|| rand::random());
     let secret = b64_decode(&std::fs::read_to_string("data/s2r12.txt").unwrap());
     aes_128_ecb(key, &[data, &secret].concat())
-}
-
-fn first_n<T, const N: usize>(slice: &[T]) -> &[T; N] {
-    assert!(slice.len() >= N);
-    slice[..N].try_into().unwrap()
-}
-
-fn last_n<T, const N: usize>(slice: &[T]) -> &[T; N] {
-    assert!(slice.len() >= N);
-    slice[slice.len() - N..].try_into().unwrap()
 }
 
 fn decrypt_last_byte(cipherblock: &[u8; 16], known_bytes: &[u8; 15]) -> Option<u8> {
@@ -80,6 +71,7 @@ fn main() {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crypto::utils::first_n;
     use proptest::prelude::*;
 
     static ANYBYTE: prop::num::u8::Any = prop::num::u8::ANY;
