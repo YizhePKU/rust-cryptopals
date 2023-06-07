@@ -10,7 +10,7 @@ const LOWER_MASK: u32 = 0x7fffffff;
 
 #[derive(Debug, Clone)]
 pub struct Mt19937 {
-    state: Vec<u32>,
+    pub state: Vec<u32>,
 }
 
 impl Mt19937 {
@@ -42,20 +42,43 @@ impl Mt19937 {
 
         self.state.push(x);
 
-        // tempering
-        let mut y = x;
-        y ^= y >> 11;
-        y ^= (y << 7) & 0x9d2c5680;
-        y ^= (y << 15) & 0xefc60000;
-        y ^= y >> 18;
-
-        y
+        temper(x)
     }
+}
+
+pub fn temper(mut x: u32) -> u32 {
+    x ^= x >> 11;
+    x ^= (x << 7) & 0x9d2c5680;
+    x ^= (x << 15) & 0xefc60000;
+    x ^= x >> 18;
+    x
+}
+
+pub fn inv_temper(mut x: u32) -> u32 {
+    // invert x ^= x >> 18
+    x ^= x >> 18;
+
+    // invert x ^= (x << 15) & 0xefc60000
+    x ^= ((x & 0x7fff) << 15) & 0xefc60000;
+    x ^= ((x & 0x3fff8000) << 15) & 0xefc60000;
+
+    // invert x ^= (x << 7) & 0x9d2c5680
+    x ^= ((x & 0x7f) << 7) & 0x9d2c5680;
+    x ^= ((x & 0x3f80) << 7) & 0x9d2c5680;
+    x ^= ((x & 0x1fc000) << 7) & 0x9d2c5680;
+    x ^= ((x & 0xfe00000) << 7) & 0x9d2c5680;
+
+    // invert x ^= x >> 11
+    x ^= (x & 0xffe00000) >> 11;
+    x ^= (x & 0x1ffc00) >> 11;
+
+    x
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use proptest::prelude::*;
 
     #[test]
     fn mt19937_seed_5489() {
@@ -71,4 +94,12 @@ mod test {
 
         assert_eq!(result, answer);
     }
+
+    proptest! {
+    #[test]
+    fn temper_roundtrip(x in prop::num::u32::ANY) {
+        let y = temper(x);
+        let z = inv_temper(y);
+        assert_eq!(x, z);
+    }}
 }
