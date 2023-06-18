@@ -1,8 +1,20 @@
+// Compute sha1 of [`msg`].
 pub fn sha1(msg: &[u8]) -> [u8; 20] {
-    let mut state: [u32; 5] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
+    let padded_msg = [msg, &sha1_pad(msg)].concat();
+    sha1_with_state(
+        &padded_msg,
+        [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0],
+    )
+}
 
-    let padded_msg = pad(msg);
-    let blocks = unsafe { padded_msg.as_chunks_unchecked::<64>() };
+// Compute sha1 of [`msg`], starting with specific internal [`state`].
+// This function does NOT add padding. Make sure [`msg`] is padded before calling this
+// function, or just use `sha1`.
+pub fn sha1_with_state(msg: &[u8], mut state: [u32; 5]) -> [u8; 20] {
+    // msg length should be a multiple of 512 bits
+    assert_eq!(msg.len() % 64, 0);
+
+    let blocks = unsafe { msg.as_chunks_unchecked::<64>() };
     for &block in blocks {
         // message schedule
         let mut w = [0u32; 80];
@@ -57,25 +69,25 @@ pub fn sha1(msg: &[u8]) -> [u8; 20] {
     digest
 }
 
-fn pad(msg: &[u8]) -> Vec<u8> {
-    let len = msg.len();
-    let mut msg = msg.to_owned();
+// Returns the padding bytes that should be appended to the message before feeding to `sha1`.
+pub fn sha1_pad(msg: &[u8]) -> Vec<u8> {
+    let mut padding = vec![];
 
-    // append the bit '1' to the message
-    msg.push(0x80);
+    // append the bit '1'
+    padding.push(0x80);
 
-    // append zeros until (message length in bits) % 512 == 448
-    while msg.len() % 64 != 56 {
-        msg.push(0);
+    // append zeros until (length in bits) % 512 == 448
+    while (msg.len() + padding.len()) % 64 != 56 {
+        padding.push(0);
     }
 
     // append original message length (in bits) as 64-bit big-endian integer
-    msg.extend_from_slice(&u64::to_be_bytes((len * 8) as u64));
+    padding.extend_from_slice(&u64::to_be_bytes((msg.len() * 8) as u64));
 
-    // message length should now be a multiple of 512 bits
-    assert!(msg.len() % 64 == 0);
+    // total length should now be a multiple of 512 bits
+    assert!((msg.len() + padding.len()) % 64 == 0);
 
-    msg
+    padding
 }
 
 #[cfg(test)]
